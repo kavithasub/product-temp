@@ -126,6 +126,7 @@ public class ScenarioSampleTest {
     private String getServerURL() {
         String bucketLocation = System.getenv("DATA_BUCKET_LOCATION");
         String url = null;
+        log.info("Data Bucket location is set : " + bucketLocation);
 
         Properties prop = new Properties();
         //InputStream input = null;
@@ -136,8 +137,14 @@ public class ScenarioSampleTest {
             ex.printStackTrace();
         }
 
+        if (url != null && url.contains("/")) {
+            url = url.split("/")[2];
+        } else if (url == null){
+            url = "localhost";
+        }
         //Construct the proper URL if required
-        return url == null ? "localhost" : url;
+        log.info("Backend URL is set as : " + bucketLocation);
+        return url;
     }
 
     private void setKeyStoreProperties() {
