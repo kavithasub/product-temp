@@ -8,12 +8,9 @@ import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import org.wso2.am.integration.test.utils.bean.APILifeCycleState;
-import org.wso2.am.integration.test.utils.bean.APILifeCycleStateRequest;
-import org.wso2.am.integration.test.utils.bean.APIRequest;
-import org.wso2.am.integration.test.utils.bean.SubscriptionRequest;
-import org.wso2.am.integration.test.utils.clients.APIPublisherRestClient;
-import org.wso2.am.integration.test.utils.clients.APIStoreRestClient;
+import org.wso2.am.integration.test.utils.bean.*;
+//import org.wso2.am.integration.test.utils.clients.APIPublisherRestClient;
+//import org.wso2.am.integration.test.utils.clients.APIStoreRestClient;
 import org.wso2.carbon.automation.test.utils.http.client.HttpResponse;
 
 import java.io.FileInputStream;
@@ -37,6 +34,8 @@ public class ScenarioSampleTest {
     private String description = "This is test API created for scenario test";
     private String APIVersion = "1.0.0";
     private String APIVersionNew = "2.0.0";
+    private String appName = "mobileApp";
+    private String providerName = "admin";
     String resourceLocation = System.getProperty("framework.resource.location");
     int timeout = 10;
     RequestConfig config = RequestConfig.custom()
@@ -47,14 +46,11 @@ public class ScenarioSampleTest {
     @BeforeClass(alwaysRun = true)
     public void init() throws Exception {
 
-//        String serverURL = "https://" + getServerURL() + ":9443/carbon";
         publisherURLHttp = "http://" + getServerURL() + ":9763/";
         storeURLHttp = "http://" + getServerURL() + ":9763/";
         endpointUrl = "http://" + getServerURL() + ":9763/am/sample/calculator/v1/api/add";
 
         setKeyStoreProperties();
-//        AuthenticatorClient authenticatorClient = new AuthenticatorClient(serverURL);
-//        String sessionCookie = authenticatorClient.login("admin", "admin", getServerURL());
         apiPublisher = new APIPublisherRestClient(publisherURLHttp);
         apiPublisher.login("admin", "admin");
         apiStore = new APIStoreRestClient(storeURLHttp);
@@ -63,7 +59,6 @@ public class ScenarioSampleTest {
 
     @Test(description = "Add new version and an API")
     public void testAPINewVersionCreation() throws Exception {
-        String providerName = "admin";
 
         apiRequest = new APIRequest(apiName, APIContext, new URL(endpointUrl));
         apiRequest.setTags(tags);
@@ -71,11 +66,8 @@ public class ScenarioSampleTest {
         apiRequest.setVersion(APIVersion);
         apiRequest.setProvider(providerName);
 
-        log.info("request : " + apiRequest.getProvider());
-
         //add test api
         HttpResponse serviceResponse = apiPublisher.addAPI(apiRequest);
-//        verifyResponse(serviceResponse);
 
         //publish the api
         APILifeCycleStateRequest updateRequest = new APILifeCycleStateRequest(apiName, providerName,
@@ -106,27 +98,38 @@ public class ScenarioSampleTest {
 
     @Test(description = "Subscribe to default API and invoke with product token")
     public void testAPISubscriptionAndInvokation() throws Exception{
-        String providerName = "admin";
-//        apiStore.login("admin", "admin");
-//        apiStore.addApplication(APP_NAME, "Unlimited", "", "");
-//        SubscriptionRequest subscriptionRequest = new SubscriptionRequest(API_NAME, API_PROVIDER);
-//        subscriptionRequest.setApplicationName(APP_NAME);
-//        apiStore.subscribe(subscriptionRequest);
+        //Subscribe to api versioned as 1.0.0
+        apiStore.login("admin", "admin");
+        apiStore.addApplication(appName, "Unlimited", "", "");
+        SubscriptionRequest subscriptionRequest = new SubscriptionRequest(apiName, providerName);
+        subscriptionRequest.setApplicationName(appName);
+        apiStore.subscribe(subscriptionRequest);
+
+        //Generate production token
+//        APPKeyRequestGenerator generateAppKeyRequest = new APPKeyRequestGenerator(appName);
+//        String responseString = apiStore.generateApplicationKey(generateAppKeyRequest).getData();
+//        JSONObject jsonResponse = new JSONObject(responseString);
+//
+//        //Get access token
+//        String accessToken = jsonResponse.getJSONObject("data").getJSONObject("key").getString("accessToken");
+        //todo: implement with invoke verification
+
     }
 
     @AfterClass(alwaysRun = true)
     public void destroy() throws Exception {
         apiPublisher.deleteAPI(apiName, APIVersion, "admin");
         apiPublisher.deleteAPI(apiName, APIVersionNew, "admin");
+        apiStore.removeApplication(appName);
     }
 
     private String getServerURL() {
-//        String bucketLocation = System.getenv("DATA_BUCKET_LOCATION");
+        String bucketLocation = System.getenv("DATA_BUCKET_LOCATION");
         String url = null;
 
         Properties prop = new Properties();
         //InputStream input = null;
-        try (InputStream input = new FileInputStream(resourceLocation + "temp/infrastructure.properties")) {
+        try (InputStream input = new FileInputStream(bucketLocation + "/infrastructure.properties")) {
             prop.load(input);
             url = prop.getProperty("WSO2PublicIP");
         } catch (IOException ex) {
