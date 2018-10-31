@@ -212,7 +212,7 @@ under the License.
                         </configuration>
                     </execution>
 
-
+<!--
                     <execution>
                         <id>unpack-mar-jks</id>
                         <phase>compile</phase>
@@ -233,6 +233,7 @@ under the License.
                             </artifactItems>
                         </configuration>
                     </execution>
+-->
                 </executions>
             </plugin>
             <plugin>
