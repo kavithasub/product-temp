@@ -46,8 +46,8 @@ public class NewVersioningTestCase {
     @BeforeClass(alwaysRun = true)
     public void init() throws Exception {
 
-        publisherURLHttp = "http://" + getServerURL();
-        endpointUrl = "http://" + getServerURL() + "/am/sample/calculator/v1/api/add";
+        publisherURLHttp = "http://" + getServerURL() + ":9763/";
+        endpointUrl = "http://" + getServerURL() + ":9763/am/sample/calculator/v1/api/add";
 
         setKeyStoreProperties();
         apiPublisher = new APIPublisherRestClient(publisherURLHttp);
@@ -117,10 +117,10 @@ public class NewVersioningTestCase {
         if ( authority!= null && authority.contains("/")) {
             authority = authority.split("/")[2];
         } else if (authority == null){
-            authority = "localhost:9763/";
+            authority = "localhost";
         }
 
-        return authority + "/";
+        return authority;
     }
 
     private void setKeyStoreProperties() {
