@@ -118,7 +118,9 @@ public class APIPublisherRestClient {
      */
     public HttpResponse addAPI(APIRequest apiRequest) throws APIManagerIntegrationTestException {
         try {
+            log.info("======API ADD====== ");
             checkAuthentication();
+            log.info(backendURL + URL_SUFFIX + "/item-add/ajax/add.jag");
             return HTTPSClientUtils.doPost(
                     new URL(backendURL + URL_SUFFIX + "/item-add/ajax/add.jag"),
                     apiRequest.generateRequestParameters(),
@@ -260,6 +262,7 @@ public class APIPublisherRestClient {
      * @throws APIManagerIntegrationTestException - Throws if no session cookie found.
      */
     private void checkAuthentication() throws APIManagerIntegrationTestException {
+        log.info("======API Cookie====== ");
         if (requestHeaders.get("Cookie") == null) {
             throw new APIManagerIntegrationTestException("No Session Cookie found. Please login first");
         }

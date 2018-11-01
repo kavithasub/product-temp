@@ -51,6 +51,8 @@ public class NewVersioningTestCase {
 
         publisherURLHttp = "http://" + getServerURL() + ":9763/";
         endpointUrl = "http://" + getServerURL() + ":9763/am/sample/calculator/v1/api/add";
+        log.info("============ publisher url : " + publisherURLHttp);
+        log.info("============ enpoint url : " + endpointUrl);
 
         setKeyStoreProperties();
         apiPublisher = new APIPublisherRestClient(publisherURLHttp);
@@ -65,7 +67,7 @@ public class NewVersioningTestCase {
         apiRequest.setDescription(description);
         apiRequest.setVersion(APIVersion);
         apiRequest.setProvider(providerName);
-
+        log.info("======API REQUEST====== ");
         //add test api
         HttpResponse serviceResponse = apiPublisher.addAPI(apiRequest);
         verifyResponse(serviceResponse);
@@ -81,7 +83,7 @@ public class NewVersioningTestCase {
         serviceResponse = apiPublisher
                 .copyAPI(apiRequest.getProvider(), apiRequest.getName(), apiRequest.getVersion(), APIVersionNew, null);
         verifyResponse(serviceResponse);
-        
+
 
         //test the copied api
         serviceResponse = apiPublisher.getAPI(apiRequest.getName(), apiRequest.getProvider(), APIVersionNew);
