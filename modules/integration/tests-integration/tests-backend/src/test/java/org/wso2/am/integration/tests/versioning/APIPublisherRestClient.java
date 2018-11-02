@@ -77,7 +77,7 @@ public class APIPublisherRestClient {
         urlParameters.add(new BasicNameValuePair("password", password));
 
         try {
-            response = HTTPSClientUtils.doPost(
+            response = HttpClient.doPost(
                     backendURL + URL_SUFFIX + "/user/login/ajax/login.jag", requestHeaders, urlParameters);
         } catch (Exception e) {
             throw new APIManagerIntegrationTestException("Unable to login to the publisher app ", e);
@@ -118,10 +118,8 @@ public class APIPublisherRestClient {
      */
     public HttpResponse addAPI(APIRequest apiRequest) throws APIManagerIntegrationTestException {
         try {
-            log.info("======API ADD====== ");
             checkAuthentication();
-            log.info(backendURL + URL_SUFFIX + "/item-add/ajax/add.jag");
-            return HTTPSClientUtils.doPost(
+            return HttpClient.doPost(
                     new URL(backendURL + URL_SUFFIX + "/item-add/ajax/add.jag"),
                     apiRequest.generateRequestParameters(),
                     requestHeaders);
@@ -147,7 +145,7 @@ public class APIPublisherRestClient {
             throws APIManagerIntegrationTestException {
         try {
             checkAuthentication();
-            return HTTPSClientUtils.doPost(
+            return HttpClient.doPost(
                     new URL(backendURL + URL_SUFFIX + "/overview/ajax/overview.jag"),
                     "action=createNewAPI&provider=" + provider + "&apiName=" + apiName + "&version="
                     + oldVersion + "&newVersion=" + newVersion + "&isDefaultVersion=" + isDefaultVersion,
@@ -191,7 +189,7 @@ public class APIPublisherRestClient {
         try {
             Thread.sleep(1000); // this is to make sure timestamps of current and next lifecycle states are different
             checkAuthentication();
-            return HTTPSClientUtils.doPost(
+            return HttpClient.doPost(
                     new URL(backendURL + "publisher/site/blocks/life-cycles/ajax/life-cycles.jag"),
                     updateRequest.generateRequestParameters(),
                     requestHeaders);
@@ -238,7 +236,7 @@ public class APIPublisherRestClient {
             throws APIManagerIntegrationTestException {
         try {
             checkAuthentication();
-            return HTTPSClientUtils.doPost(
+            return HttpClient.doPost(
                     new URL(backendURL + "publisher/site/blocks/item-add/ajax/remove.jag"),
                     "action=removeAPI&name=" + apiName + "&version=" + version + "&provider=" + provider,
                     requestHeaders);
@@ -262,7 +260,6 @@ public class APIPublisherRestClient {
      * @throws APIManagerIntegrationTestException - Throws if no session cookie found.
      */
     private void checkAuthentication() throws APIManagerIntegrationTestException {
-        log.info("======API Cookie====== ");
         if (requestHeaders.get("Cookie") == null) {
             throw new APIManagerIntegrationTestException("No Session Cookie found. Please login first");
         }
@@ -383,7 +380,7 @@ public class APIPublisherRestClient {
             throws APIManagerIntegrationTestException {
         try {
             checkAuthentication();
-            return HTTPSClientUtils.doPost(
+            return HttpClient.doPost(
                     new URL(backendURL + "publisher/site/blocks/listing/ajax/item-list.jag"),
                     "action=getAPI&name=" + apiName + "&version=" + version + "&provider=" + provider + "",
                     requestHeaders);
