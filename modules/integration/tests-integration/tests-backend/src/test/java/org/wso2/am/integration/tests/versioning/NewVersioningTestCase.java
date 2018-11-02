@@ -51,15 +51,13 @@ public class NewVersioningTestCase {
 
         publisherURLHttp = "http://" + getServerURL() + ":9763/";
         endpointUrl = "http://" + getServerURL() + ":9763/am/sample/calculator/v1/api/add";
-        log.info("============ publisher url : " + publisherURLHttp);
-        log.info("============ enpoint url : " + endpointUrl);
 
         setKeyStoreProperties();
         apiPublisher = new APIPublisherRestClient(publisherURLHttp);
         apiPublisher.login("admin", "admin");
     }
 
-    @Test(description = "Add new version and an API")
+    @Test(description = "Add an new API and Published")
     public void testAPINewVersionCreation() throws Exception {
 
         apiRequest = new APIRequest(apiName, APIContext, new URL(endpointUrl));
@@ -67,7 +65,7 @@ public class NewVersioningTestCase {
         apiRequest.setDescription(description);
         apiRequest.setVersion(APIVersion);
         apiRequest.setProvider(providerName);
-        log.info("======API REQUEST====== ");
+
         //add test api
         HttpResponse serviceResponse = apiPublisher.addAPI(apiRequest);
         verifyResponse(serviceResponse);
@@ -79,7 +77,8 @@ public class NewVersioningTestCase {
         verifyResponse(serviceResponse);
 
 
-        //copy test api
+
+
         serviceResponse = apiPublisher
                 .copyAPI(apiRequest.getProvider(), apiRequest.getName(), apiRequest.getVersion(), APIVersionNew, null);
         verifyResponse(serviceResponse);
@@ -99,6 +98,7 @@ public class NewVersioningTestCase {
         serviceResponse = apiPublisher.changeAPILifeCycleStatus(updateRequest);
 
         Assert.assertTrue(serviceResponse.getData().contains(APILifeCycleState.PUBLISHED.getState()));
+
     }
 
     @AfterClass(alwaysRun = true)
