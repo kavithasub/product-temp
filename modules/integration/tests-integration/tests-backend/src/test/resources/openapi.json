@@ -4,6 +4,12 @@
     "version": "1.0.0",
     "title": "Swagger3SampleAPI"
   },
+  "servers": [
+    {
+      "url": "http://petstore.swagger.io/v1"
+    }
+  ],
+  "basePath": "/contextV3",
   "paths": {
     "/pets": {
       "post": {
