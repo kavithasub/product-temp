@@ -121,7 +121,6 @@ public class HttpClient {
                 heads.put(newHeader.getName(), headerArray);
             }
         }
-
         HttpResponse res = new HttpResponse(body, code, heads);
         return res;
     }
