@@ -24,35 +24,19 @@ import org.apache.http.Header;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLContexts;
-import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.wso2.am.integration.test.utils.http.HttpRequestUtil;
 import org.wso2.carbon.automation.test.utils.http.client.HttpResponse;
 
-import javax.net.ssl.SSLContext;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.nio.file.Files;
-import java.nio.file.OpenOption;
-import java.nio.file.Paths;
-import java.security.cert.CertificateException;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -65,58 +49,26 @@ public class HttpClient {
     public HttpClient() {
     }
 
-    public static HttpResponse doGet(String url, Map<String, String> headers) throws IOException {
-        CloseableHttpClient httpClient = getHttpsClient();
-        org.apache.http.HttpResponse response = sendGetRequest(httpClient, url, headers);
-        return constructResponse(response);
-    }
-
-    public static HttpResponse doPost(String url, Map<String, String> headers, List<NameValuePair> urlParameters)
+    public static HttpResponse doPost(String url, Map<String, List<String>> headers, List<NameValuePair> urlParameters)
             throws IOException {
         CloseableHttpClient httpClient = getHttpsClient();
         org.apache.http.HttpResponse response = sendPOSTMessage(httpClient, url, headers, urlParameters);
         return constructResponse(response);
     }
 
-    public static HttpResponse doMutulSSLGet(String path, String url, Map<String, String> headers) throws IOException,
-            NoSuchAlgorithmException, KeyStoreException, KeyManagementException, UnrecoverableKeyException {
-        CloseableHttpClient httpClient = getMutualSSLHttpsClient(path);
-        org.apache.http.HttpResponse response = sendGetRequest(httpClient, url, headers);
-        return constructResponse(response);
-    }
-
-    public static HttpResponse doPost(String url, Map<String, String> headers, String payload) throws IOException {
-        CloseableHttpClient httpClient = getHttpsClient();
-        org.apache.http.HttpResponse response = sendPOSTMessage(httpClient, url, headers, payload);
-        return constructResponse(response);
-    }
-
-    public static HttpResponse doPut(String url, Map<String, String> headers, String payload) throws IOException {
-        CloseableHttpClient httpClient = getHttpsClient();
-        org.apache.http.HttpResponse response = sendPUTMessage(httpClient, url, headers, payload);
-        return constructResponse(response);
-    }
-
-    public static HttpResponse doPost(URL url, Map<String, String> headers, String json) throws IOException {
-        CloseableHttpClient httpClient = getHttpsClient();
-        org.apache.http.HttpResponse response = sendPOSTMessage(httpClient, url.toString(), headers, json);
-        return constructResponse(response);
-    }
-
-    public static HttpResponse doPost(URL url, String urlParams, Map<String, String> headers) throws IOException {
+    public static HttpResponse doPost(URL url, String urlParams, Map<String, List<String>> headers) throws IOException {
         List<NameValuePair> urlParameters = new ArrayList();
         if (urlParams != null && urlParams.contains("=")) {
             String[] paramList = urlParams.split("&");
-            String[] arr$ = paramList;
-            int len$ = paramList.length;
-
-            for (int i$ = 0; i$ < len$; ++i$) {
-                String pair = arr$[i$];
+            String[] arr = paramList;
+            for (String newPair : arr) {
+                String pair = newPair;
                 if (pair.contains("=")) {
                     String[] pairList = pair.split("=");
                     String key = pairList[0];
                     String value = pairList.length > 1 ? pairList[1] : "";
                     urlParameters.add(new BasicNameValuePair(key, URLDecoder.decode(value, "UTF-8")));
+
                 }
             }
         }
@@ -134,105 +86,22 @@ public class HttpClient {
         return httpClient;
     }
 
-    private static CloseableHttpClient getMutualSSLHttpsClient(String keyStorePath) throws KeyStoreException,
-            NoSuchAlgorithmException, KeyManagementException, UnrecoverableKeyException {
-        int timeout = 7;
-        RequestConfig config = RequestConfig.custom().setConnectTimeout(timeout * 10000).
-                setConnectionRequestTimeout(timeout * 10000).setSocketTimeout(timeout * 10000).build();
-        KeyStore trustStore = KeyStore.getInstance("JKS");
-
-        try {
-            InputStream is = Files.newInputStream(Paths.get(keyStorePath, new String[0]), new OpenOption[0]);
-            Throwable var5 = null;
-
-            try {
-                trustStore.load(is, "password".toCharArray());
-            } catch (Throwable var15) {
-                var5 = var15;
-                throw var15;
-            } finally {
-                if (is != null) {
-                    if (var5 != null) {
-                        try {
-                            is.close();
-                        } catch (Throwable var14) {
-                            var5.addSuppressed(var14);
-                        }
-                    } else {
-                        is.close();
-                    }
-                }
-
-            }
-        } catch (CertificateException | IOException var17) {
-            log.error("Error while loading keystore", var17);
-        }
-
-        SSLContext sslcontext = SSLContexts.custom().loadTrustMaterial(trustStore, new TrustSelfSignedStrategy()).loadKeyMaterial(trustStore, "password".toCharArray()).build();
-        SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslcontext, new String[]{"TLSv1"}, (String[]) null, SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
-        return HttpClients.custom().setSSLSocketFactory(sslsf).disableRedirectHandling().setDefaultRequestConfig(config).setHostnameVerifier(SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER).build();
-    }
-
-    private static org.apache.http.HttpResponse sendGetRequest(CloseableHttpClient httpClient, String url, Map<String, String> headers) throws IOException {
-        HttpGet request = new HttpGet(url);
-        if (headers != null) {
-            Iterator i$ = headers.entrySet().iterator();
-
-            while (i$.hasNext()) {
-                Map.Entry<String, String> head = (Map.Entry) i$.next();
-                request.addHeader((String) head.getKey(), (String) head.getValue());
-            }
-        }
-
-        return httpClient.execute(request);
-    }
-
-    private static org.apache.http.HttpResponse sendPOSTMessage(CloseableHttpClient httpClient, String url, Map<String, String> headers, List<NameValuePair> urlParameters) throws IOException {
+    private static org.apache.http.HttpResponse sendPOSTMessage(CloseableHttpClient httpClient,
+                                                                String url, Map<String, List<String>> headers,
+                                                                List<NameValuePair> urlParameters) throws IOException {
         HttpPost post = new HttpPost(url);
         if (headers != null) {
-            Iterator i$ = headers.entrySet().iterator();
+            Iterator i = headers.entrySet().iterator();
 
-            while (i$.hasNext()) {
-                Map.Entry<String, String> head = (Map.Entry) i$.next();
-                post.addHeader((String) head.getKey(), (String) head.getValue());
+            while (i.hasNext()) {
+                Map.Entry<String, List<String>> head = (Map.Entry) i.next();
+                for (int itr = 0; head.getValue().size() > itr; itr++) {
+                    post.addHeader((String) head.getKey(), (String) head.getValue().get(itr));
+                }
             }
         }
-
         post.setEntity(new UrlEncodedFormEntity(urlParameters));
         return httpClient.execute(post);
-    }
-
-    private static org.apache.http.HttpResponse sendPOSTMessage(CloseableHttpClient httpClient, String url, Map<String,
-            String> headers, String body) throws IOException {
-        HttpPost post = new HttpPost(url);
-        if (headers != null) {
-            Iterator i$ = headers.entrySet().iterator();
-
-            while (i$.hasNext()) {
-                Map.Entry<String, String> head = (Map.Entry) i$.next();
-                post.addHeader((String) head.getKey(), (String) head.getValue());
-            }
-        }
-
-        post.setEntity(new StringEntity(body));
-        return httpClient.execute(post);
-    }
-
-    private static org.apache.http.HttpResponse sendPUTMessage(CloseableHttpClient httpClient, String url,
-                                                               Map<String, String> headers, String body)
-            throws IOException {
-        HttpPut put = new HttpPut(url);
-        if (headers != null) {
-            Iterator i$ = headers.entrySet().iterator();
-
-            while (i$.hasNext()) {
-                Map.Entry<String, String> head = (Map.Entry) i$.next();
-                put.addHeader((String) head.getKey(), (String) head.getValue());
-            }
-        }
-
-        put.setEntity(new StringEntity(body));
-        return httpClient.execute(put);
     }
 
     private static HttpResponse constructResponse(org.apache.http.HttpResponse response) throws IOException {
@@ -240,19 +109,18 @@ public class HttpClient {
         String body = getResponseBody(response);
         Header[] headers = response.getAllHeaders();
 
-        Map<String, String> heads = new HashMap();
-        Header[] arr$ = headers;
-        int len$ = headers.length;
-
-        for (int i$ = 0; i$ < len$; ++i$) {
-            Header header = arr$[i$];
-            if (heads.get(header.getName()) != null) {
-                heads.put(header.getName(), heads.get(header.getName()).concat("; " + header.getValue()));
+        Map<String, List<String>> heads = new HashMap();
+        Header[] arr = headers;
+        for (Header newHeader : arr) {
+            List<String> headerArray = new ArrayList<>();
+            if (heads.get(newHeader.getName()) != null) {
+                headerArray.add(headerArray.size(), newHeader.getValue());
+                heads.put(newHeader.getName(), headerArray);
             } else {
-                heads.put(header.getName(), header.getValue());
+                headerArray.add(0, newHeader.getValue());
+                heads.put(newHeader.getName(), headerArray);
             }
         }
-
         HttpResponse res = new HttpResponse(body, code, heads);
         return res;
     }
